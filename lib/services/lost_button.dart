@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class lostButton extends StatelessWidget {
+  final String name;
+  final String amount;
+  final String taker;
+
+  const lostButton({required this.name, required this.amount, required this.taker});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      child: FloatingActionButton(
+        child: Icon(Icons.cancel_outlined),
+        onPressed: () async {
+          try {
+
+            await deleteItem(name, taker);
+            // show a success message if the update was successful
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Item amount updated successfully'),
+            ));
+          } catch (e) {
+            // show an error message if the update failed
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Failed to update item amount: $e'),
+            ));
+          }
+        },
+        backgroundColor: Color(0xFF1A63AF),
+
+      ),
+    );
+  }
+
+
+  Future<void> deleteItem(String itemName, String taker) async {
+    final firestoreInstance = FirebaseFirestore.instance;
+
+    final itemRef = firestoreInstance.collection('users').doc(taker).collection('items').doc(itemName);
+    final itemSnapshot = await itemRef.get();
+    if (itemSnapshot.exists) {
+      await itemRef.delete();
+    } else {
+      throw Exception('Document $itemName does not exist');
+    }
+  }
+
+}
